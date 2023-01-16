@@ -27,9 +27,9 @@ function(check_version major minor patch)
     set(VER_MINOR 0)
     set(VER_PATCH 0)
 
-    set(${major} ${AGG_MAJOR} PARENT_SCOPE)
-    set(${minor} ${AGG_MINOR} PARENT_SCOPE)
-    set(${patch} ${AGG_REV} PARENT_SCOPE)
+    set(${major} ${VER_MAJOR} PARENT_SCOPE)
+    set(${minor} ${VER_MINOR} PARENT_SCOPE)
+    set(${patch} ${VER_PATCH} PARENT_SCOPE)
 
     # Store version string in file for installer needs
     file(TIMESTAMP ${VERSION_FILE} VERSION_DATETIME "%Y-%m-%d %H:%M:%S" UTC)
