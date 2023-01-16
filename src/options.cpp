@@ -16,25 +16,19 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ****************************************************************************/
 
-#include <QDebug>
-#include "certimporter.h"
-#include "console.h"
 #include "options.h"
+#include <QCommandLineParser>
 
-int main(int argc, char **argv)
+CommandLine::Options CommandLine::parse(int argc, char **argv)
 {
-    CommandLine::Options options = CommandLine::parse(argc, argv);
+    QStringList arguments;
+    for (size_t i = 0; i < argc; ++i)
+        arguments.push_back(QString(argv[i]));
 
-    if (!options.silentMode)
-        Console::Open();
+    QCommandLineParser parser;
+    parser.addOption({ QStringList() << "s" << "silent", "silent mode." });
+    parser.addOption({ QStringList() << "t" << "target", "cert.pem <directory>.", "directory" });
+    parser.parse(arguments);
 
-    qInfo() << "***********************************************************************";
-    qInfo() << "*** NextGIS tools *****************************************************";
-    qInfo() << "*** Utility to Imports system certificates to OpenSSL PEM CA bundle ***";
-    qInfo() << "***********************************************************************\n";
-
-    CertImporter::import(options.targetPath);
-
-    if (!options.silentMode)
-        Console::Close();
+    return  { parser.isSet("silent"), parser.value("target") };
 }

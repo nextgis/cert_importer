@@ -16,25 +16,36 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ****************************************************************************/
 
-#include <QDebug>
-#include "certimporter.h"
 #include "console.h"
-#include "options.h"
+#include <QDebug>
+#ifdef Q_OS_WIN
+#   include <Windows.h>
+#endif
 
-int main(int argc, char **argv)
+void Console::Open()
 {
-    CommandLine::Options options = CommandLine::parse(argc, argv);
+#ifdef Q_OS_WIN
+    if (AllocConsole())
+    {
+        freopen_s(reinterpret_cast<FILE **>(stdout), "CONOUT$", "w", stdout);
+        freopen_s(reinterpret_cast<FILE **>(stdout), "CONOUT$", "w", stderr);
+        freopen_s(reinterpret_cast<FILE **>(stdin), "CONIN$", "r", stdin);
+    }
+#endif
+}
 
-    if (!options.silentMode)
-        Console::Open();
+void Console::Close()
+{
+#ifdef Q_OS_WIN
+    qInfo() << "\nPress any key to close";
 
-    qInfo() << "***********************************************************************";
-    qInfo() << "*** NextGIS tools *****************************************************";
-    qInfo() << "*** Utility to Imports system certificates to OpenSSL PEM CA bundle ***";
-    qInfo() << "***********************************************************************\n";
-
-    CertImporter::import(options.targetPath);
-
-    if (!options.silentMode)
-        Console::Close();
+    HANDLE handle = GetStdHandle(STD_INPUT_HANDLE);
+    if (handle)
+    {
+        SetConsoleMode(handle, ~(ENABLE_LINE_INPUT | ENABLE_ECHO_INPUT));
+        TCHAR c = 0; DWORD cc;
+        ReadConsole(handle, &c, 1, &cc, NULL);
+    }
+    FreeConsole();
+#endif
 }

@@ -23,7 +23,7 @@
 class CertImporter
 {
 public:
-    static void import();
+    static void import(const QString &target);
 private:
-    static QString getCertPath();
+    static QString getCertFilePath(const QString &target);
 };

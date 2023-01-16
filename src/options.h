@@ -16,25 +16,17 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ****************************************************************************/
 
-#include <QDebug>
-#include "certimporter.h"
-#include "console.h"
-#include "options.h"
+#pragma once
 
-int main(int argc, char **argv)
+#include <QString>
+
+class CommandLine
 {
-    CommandLine::Options options = CommandLine::parse(argc, argv);
-
-    if (!options.silentMode)
-        Console::Open();
-
-    qInfo() << "***********************************************************************";
-    qInfo() << "*** NextGIS tools *****************************************************";
-    qInfo() << "*** Utility to Imports system certificates to OpenSSL PEM CA bundle ***";
-    qInfo() << "***********************************************************************\n";
-
-    CertImporter::import(options.targetPath);
-
-    if (!options.silentMode)
-        Console::Close();
-}
+public:
+    struct Options
+    {
+        bool silentMode = false;
+        QString targetPath;
+    };
+    static Options parse(int argc, char **argv);
+};

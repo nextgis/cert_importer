@@ -22,9 +22,13 @@
 #include <QSslCertificate>
 #include <QSslConfiguration>
 
-void CertImporter::import()
+void CertImporter::import(const QString &target)
 {
     qInfo() << "Importing system certificates";
+
+    QString certFilePath = getCertFilePath(target);
+    if (certFilePath.isEmpty())
+        return;
 
     QByteArray certificates;
     for (const QSslCertificate &certificate : QSslConfiguration::systemCaCertificates())
@@ -32,7 +36,7 @@ void CertImporter::import()
 
     if (!certificates.isEmpty())
     {
-        QFile certFile(getCertPath());
+        QFile certFile(certFilePath);
         if (certFile.open(QIODevice::WriteOnly | QIODevice::Truncate))
         {
             const auto bytes = certFile.write(certificates);
@@ -50,10 +54,31 @@ void CertImporter::import()
         qInfo() << "FAILED. Cannot find certificates in system CA database";
 }
 
-QString CertImporter::getCertPath()
+QString CertImporter::getCertFilePath(const QString &target)
 { 
-    if (QDir::current().dirName() == "bin")
-        return QString("%1/../share/ssl/certs/cert.pem").arg(QDir::currentPath());
+    QString result;
+    const QString certFileName = "cert.pem";
+
+    if (target.isEmpty())
+    {
+        if (QDir::current().dirName() == "bin")
+            result = QString("%1/../share/ssl/certs/%2").arg(QDir::currentPath(), certFileName);
+        else
+            result = QString("%1/share/ssl/certs/%2").arg(QDir::currentPath(), certFileName);
+    }
     else
-        return QString("%1/share/ssl/certs/cert.pem").arg(QDir::currentPath());
+    { 
+        QDir dir(target);
+        if (!dir.exists())
+        {
+            if (!dir.mkdir("."))
+                qInfo() << "FAILED. The specified path does not exist:" << target;
+            else
+                result = QString("%1/%2").arg(dir.path(), certFileName);
+        }
+        else
+            result = QString("%1/%2").arg(dir.path(), certFileName);
+    }
+
+    return result;
 }

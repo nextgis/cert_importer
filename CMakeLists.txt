@@ -49,7 +49,14 @@ report_version(${PROJECT_NAME} ${VERSION})
 include(FindAnyProject)
 find_anyproject(Qt5 REQUIRED COMPONENTS Core Network)
 
-add_executable(${PROJECT_NAME} WIN32 src/main.cpp src/certimporter.cpp src/certimporter.h)
+set(PROJECT_SOURCES
+    src/main.cpp
+    src/certimporter.cpp
+    src/console.cpp
+    src/options.cpp
+)
+
+add_executable(${PROJECT_NAME} WIN32 ${PROJECT_SOURCES})
 target_link_libraries(${PROJECT_NAME} PRIVATE Qt5::Core Qt5::Network)
 
 set(PACKAGE_NAME ${PROJECT_NAME})
