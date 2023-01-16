@@ -50,9 +50,9 @@ int main(int argc, char **argv)
 
     if (!silentMode)
     {
+#ifdef Q_OS_WIN
         qInfo() << "\nPress any key to close";
 
-#ifdef Q_OS_WIN
         HANDLE handle = GetStdHandle(STD_INPUT_HANDLE);
         if (handle)
         {

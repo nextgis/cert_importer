@@ -21,16 +21,21 @@
 ################################################################################
 
 function(check_version major minor patch)
-    set(${major} 1 PARENT_SCOPE)
-    set(${minor} 0 PARENT_SCOPE)
-    set(${patch} 0 PARENT_SCOPE)
+    set(VERSION_FILE ${CMAKE_CURRENT_SOURCE_DIR}/cmake/util.cmake)
+
+    set(VER_MAJOR 1)
+    set(VER_MINOR 0)
+    set(VER_PATCH 0)
+
+    set(${major} ${AGG_MAJOR} PARENT_SCOPE)
+    set(${minor} ${AGG_MINOR} PARENT_SCOPE)
+    set(${patch} ${AGG_REV} PARENT_SCOPE)
 
     # Store version string in file for installer needs
     file(TIMESTAMP ${VERSION_FILE} VERSION_DATETIME "%Y-%m-%d %H:%M:%S" UTC)
-    set(VERSION ${MAJOR_VERSION}.${MINOR_VERSION}.${PATCH_NUMBER})
+    set(VERSION ${VER_MAJOR}.${VER_MINOR}.${VER_PATCH})
     get_cpack_filename(${VERSION} PROJECT_CPACK_FILENAME)
     file(WRITE ${CMAKE_BINARY_DIR}/version.str "${VERSION}\n${VERSION_DATETIME}\n${PROJECT_CPACK_FILENAME}")
-
 endfunction(check_version)
 
 
