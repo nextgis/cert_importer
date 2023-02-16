@@ -22,36 +22,63 @@
 #include <QSslCertificate>
 #include <QSslConfiguration>
 
+static const QByteArray CERT_IMPORTER_LABEL = "## NextGIS certificates importer";
+
 void CertImporter::import(const QString &target)
 {
     qInfo() << "Importing system certificates";
 
-    QString certFilePath = getCertFilePath(target);
-    if (certFilePath.isEmpty())
-        return;
-
-    QByteArray certificates;
-    for (const QSslCertificate &certificate : QSslConfiguration::systemCaCertificates())
-        certificates += certificate.toPem();
-
-    if (!certificates.isEmpty())
+    const QString certFilePath = getCertFilePath(target);
+    if (!certFilePath.isEmpty())
     {
-        QFile certFile(certFilePath);
-        if (certFile.open(QIODevice::WriteOnly | QIODevice::Truncate))
+        if (!isAlreadyImported(certFilePath))
         {
-            const auto bytes = certFile.write(certificates);
-            certFile.close();
-
-            if (bytes < 0)
-                qInfo() << "FAILED. Cannot write to file:" << certFile.fileName() << "error message:" << certFile.errorString();
+            const QByteArray certificates = getSystemCertificates();
+            if (!certificates.isEmpty())
+                writeCertificatesToFile(certificates, certFilePath);
             else
-                qInfo() << "OK. System certificates successfully imported";
+                qInfo() << "FAILED. Cannot find certificates in system CA database";
         }
         else
-            qInfo() << "FAILED. Cannot open file:" << certFile.fileName() << "error message:" << certFile.errorString();
+            qInfo() << "SKIPPED. Certificates already imported";
+    }
+}
+
+bool CertImporter::isAlreadyImported(const QString &certFilePath)
+{
+    QFile certFile(certFilePath);
+    if (certFile.open(QIODevice::ReadOnly))
+        return certFile.readAll().indexOf(CERT_IMPORTER_LABEL) != -1;
+    else
+    {
+        qInfo() << "FAILED. Cannot open file to read:" << certFile.fileName() << "error message:" << certFile.errorString();
+        return false;
+    }
+}
+
+QByteArray CertImporter::getSystemCertificates()
+{
+    QByteArray certificates;
+    for (const QSslCertificate& certificate : QSslConfiguration::systemCaCertificates())
+        certificates += certificate.toPem();
+    return certificates;
+}
+
+void CertImporter::writeCertificatesToFile(const QByteArray &certificates, const QString &certFilePath)
+{
+    QFile certFile(certFilePath);
+    if (certFile.open(QIODevice::Append))
+    {
+        const auto bytes = certFile.write('\n' + CERT_IMPORTER_LABEL + '\n' + certificates);
+        certFile.close();
+
+        if (bytes < 0)
+            qInfo() << "FAILED. Cannot write to file:" << certFile.fileName() << "error message:" << certFile.errorString();
+        else
+            qInfo() << "OK. System certificates successfully imported";
     }
     else
-        qInfo() << "FAILED. Cannot find certificates in system CA database";
+        qInfo() << "FAILED. Cannot open file:" << certFile.fileName() << "error message:" << certFile.errorString();
 }
 
 QString CertImporter::getCertFilePath(const QString &target)

@@ -26,4 +26,9 @@ public:
     static void import(const QString &target);
 private:
     static QString getCertFilePath(const QString &target);
+    static bool isAlreadyImported(const QString &certFilePath);
+    static QByteArray getSystemCertificates();
+    static void writeCertificatesToFile(const QByteArray &certificates, const QString &certFilePath);
+
+    friend class CertFilePathTests;
 };
